@@ -6,7 +6,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # 构建输出
-dist
+# dist - 注释掉，因为Docker构建时需要创建此目录
 build
 
 # 日志文件
