@@ -11,9 +11,8 @@ FROM node:18-alpine
 # 所有后续操作都在此目录下进行
 WORKDIR /app
 
-# 全局安装PM2进程管理器
-# PM2提供进程管理、负载均衡、自动重启等功能
-RUN npm install -g pm2
+# 设置生产环境变量
+ENV NODE_ENV=production
 
 # 首先复制package.json和锁定文件
 # 利用Docker层缓存机制，只有依赖变化时才重新安装
@@ -48,7 +47,5 @@ USER nodejs
 # 告诉Docker该容器监听3000端口
 EXPOSE 3000
 
-# 使用PM2运行时启动应用
-# pm2-runtime适合容器环境，会保持前台运行
-# 使用ecosystem.config.js配置文件启动
-CMD ["pm2-runtime", "start", "ecosystem.config.js"]
+# 直接使用node启动编译后的应用
+CMD ["node", "dist/app/app.js"]

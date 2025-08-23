@@ -145,3 +145,7 @@
 {"level":"info","message":"服务器启动成功，监听端口: http://localhost:3000/","service":"enterprise-backend","timestamp":"2025-08-23T16:05:03.774Z"}
 {"level":"info","message":"Database models synchronized successfully.","service":"enterprise-backend","timestamp":"2025-08-23T16:05:42.848Z"}
 {"level":"info","message":"服务器启动成功，监听端口: http://localhost:3000/","service":"enterprise-backend","timestamp":"2025-08-23T16:05:42.848Z"}
+{"level":"info","message":"Database models synchronized successfully.","service":"enterprise-backend","timestamp":"2025-08-23T18:41:34.325Z"}
+{"level":"info","message":"服务器启动成功，监听端口: http://localhost:3000/","service":"enterprise-backend","timestamp":"2025-08-23T18:41:34.326Z"}
+{"level":"info","message":"Database models synchronized successfully.","service":"enterprise-backend","timestamp":"2025-08-23T18:42:22.635Z"}
+{"level":"info","message":"服务器启动成功，监听端口: http://localhost:3000/","service":"enterprise-backend","timestamp":"2025-08-23T18:42:22.635Z"}
