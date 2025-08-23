@@ -85,20 +85,22 @@ jobs:
     - name: 设置 Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    # 验证Docker用户名
-    - name: 验证 Docker 用户名
+    # 设置Docker用户名环境变量
+    - name: 设置 Docker 用户名
       run: |
         if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
-          echo "错误: DOCKER_USERNAME 未设置"
-          exit 1
+          echo "警告: DOCKER_USERNAME 未设置，使用默认值"
+          echo "DOCKER_USERNAME=jacksyk" >> $GITHUB_ENV
+        else
+          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
         fi
-        echo "Docker用户名已设置: ${{ secrets.DOCKER_USERNAME }}"
+        echo "使用的Docker用户名: $DOCKER_USERNAME"
     
     # 登录Docker Hub
     - name: 登录 Docker Hub
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
+        username: ${{ env.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     
     # 提取镜像元数据（标签、标签等）
@@ -106,7 +108,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ secrets.DOCKER_USERNAME }}/editor-backend
+        images: ${{ env.DOCKER_USERNAME }}/editor-backend
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -151,7 +153,7 @@ jobs:
           docker rm editor-backend || true
           
           # 拉取最新镜像
-          docker pull ${{ secrets.DOCKER_USERNAME }}/editor-backend:latest
+          docker pull jacksyk/editor-backend:latest
           
           # 启动新容器
           docker run -d \
@@ -160,7 +162,7 @@ jobs:
             -p 3000:3000 \
             -e NODE_ENV=production \
             -v /var/log/editor-backend:/app/logs \
-            ${{ secrets.DOCKER_USERNAME }}/editor-backend:latest
+            jacksyk/editor-backend:latest
           
           # 清理未使用的镜像
           docker image prune -f
