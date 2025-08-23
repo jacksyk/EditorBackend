@@ -176,8 +176,14 @@ jobs:
       with:
         host: ${{ secrets.SERVER_HOST }}        # 服务器IP地址
         username: ${{ secrets.SERVER_USER }}    # 服务器用户名
+        # 优先使用SSH密钥认证
         key: ${{ secrets.SERVER_SSH_KEY }}      # SSH私钥
+        # 备选：密码认证（如果密钥认证失败）
+        password: ${{ secrets.SERVER_PASSWORD }} # 服务器密码
         port: ${{ secrets.SERVER_PORT || 22 }}  # SSH端口，默认22
+        # 连接超时和重试设置
+        timeout: 30s
+        command_timeout: 10m
         script: |
           # 停止并删除旧容器
           docker stop editor-backend || true
