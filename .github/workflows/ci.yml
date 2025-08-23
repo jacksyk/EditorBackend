@@ -92,6 +92,48 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     
+    # 检查并创建Docker Hub仓库（如果不存在）
+    - name: 检查并创建 Docker Hub 仓库
+      run: |
+        REPO_NAME="jacksyk/editor-backend"
+        USERNAME="${{ secrets.DOCKER_USERNAME }}"
+        PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
+        
+        echo "检查仓库 $REPO_NAME 是否存在..."
+        
+        # 尝试获取仓库信息来检查是否存在
+        REPO_CHECK=$(curl -s -o /dev/null -w "%{http_code}" "https://hub.docker.com/v2/repositories/$REPO_NAME/")
+        
+        if [ "$REPO_CHECK" = "404" ]; then
+          echo "仓库 $REPO_NAME 不存在，尝试创建..."
+          
+          # 获取Docker Hub JWT token
+          TOKEN=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"username\": \"$USERNAME\", \"password\": \"$PASSWORD\"}" \
+            "https://hub.docker.com/v2/users/login/" | jq -r .token)
+          
+          if [ "$TOKEN" != "null" ] && [ "$TOKEN" != "" ]; then
+            # 创建仓库
+            CREATE_RESULT=$(curl -s -X POST \
+              -H "Authorization: JWT $TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "name": "editor-backend",
+                "description": "Editor Backend Application - Automated CI/CD",
+                "is_private": false
+              }' \
+              "https://hub.docker.com/v2/repositories/")
+            
+            echo "仓库创建请求已发送"
+          else
+            echo "获取认证token失败，将尝试直接推送镜像"
+          fi
+        else
+          echo "仓库 $REPO_NAME 已存在或检查失败，继续构建流程"
+        fi
+      continue-on-error: true  # 即使创建失败也继续执行
+    
     # 提取镜像元数据（标签、标签等）
     - name: 提取镜像元数据
       id: meta
