@@ -76,5 +76,5 @@ docker-compose.yaml
 # 其他
 .eslintrc*
 .prettierrc*
-tsconfig.json
+# tsconfig.json - 注释掉，Docker构建时需要此文件
 jest.config.js
