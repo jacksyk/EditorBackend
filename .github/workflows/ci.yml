@@ -28,18 +28,18 @@ jobs:
     - name: 检出代码
       uses: actions/checkout@v4
     
-    # 设置Node.js环境
-    - name: 设置 Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'               # 启用npm缓存加速构建
-    
     # 安装pnpm包管理器
     - name: 安装 pnpm
       uses: pnpm/action-setup@v2
       with:
         version: latest
+    
+    # 设置Node.js环境
+    - name: 设置 Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'              # 启用pnpm缓存加速构建
     
     # 安装项目依赖
     - name: 安装依赖
