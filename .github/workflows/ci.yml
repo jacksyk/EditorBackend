@@ -95,7 +95,7 @@ jobs:
     # 检查并创建Docker Hub仓库（如果不存在）
     - name: 检查并创建 Docker Hub 仓库
       run: |
-        REPO_NAME="jacksyk/editor-backend"
+        REPO_NAME="${{ secrets.DOCKER_USERNAME }}/editor-backend"
         USERNAME="${{ secrets.DOCKER_USERNAME }}"
         PASSWORD="${{ secrets.DOCKER_PASSWORD }}"
         
@@ -139,7 +139,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: jacksyk/editor-backend
+        images: ${{ secrets.DOCKER_USERNAME }}/editor-backend
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -184,7 +184,7 @@ jobs:
           docker rm editor-backend || true
           
           # 拉取最新镜像
-          docker pull jacksyk/editor-backend:latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/editor-backend:latest
           
           # 启动新容器
           docker run -d \
@@ -193,7 +193,7 @@ jobs:
             -p 3000:3000 \
             -e NODE_ENV=production \
             -v /var/log/editor-backend:/app/logs \
-            jacksyk/editor-backend:latest
+            ${{ secrets.DOCKER_USERNAME }}/editor-backend:latest
           
           # 清理未使用的镜像
           docker image prune -f
