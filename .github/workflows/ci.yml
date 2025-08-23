@@ -1,0 +1,185 @@
+# ============================================
+# Editor-Backend CI/CD 流水线配置
+# 自动化测试、构建、安全扫描和部署流程
+# ============================================
+
+name: CI/CD Pipeline
+
+# ========== 触发条件 ==========
+# 定义何时触发CI/CD流程
+on:
+  push:
+    branches: [ master, develop ]    # 推送到主分支或开发分支时触发
+  pull_request:
+    branches: [ master ]             # 向主分支提交PR时触发
+
+jobs:
+  # ========== 测试任务 ==========
+  # 在多个Node.js版本上运行测试，确保兼容性
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]  # 测试多个Node.js版本
+    
+    steps:
+    # 检出代码仓库
+    - name: 检出代码
+      uses: actions/checkout@v4
+    
+    # 设置Node.js环境
+    - name: 设置 Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'               # 启用npm缓存加速构建
+    
+    # 安装pnpm包管理器
+    - name: 安装 pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: latest
+    
+    # 安装项目依赖
+    - name: 安装依赖
+      run: pnpm install --frozen-lockfile
+    
+    # TypeScript编译检查
+    - name: TypeScript编译检查
+      run: pnpm run build
+    
+    # 代码质量检查（如果配置了lint脚本）
+    - name: 代码质量检查
+      run: |
+        if [ -f "package.json" ] && grep -q '"lint"' package.json; then
+          pnpm run lint
+        else
+          echo "未找到lint脚本，跳过代码质量检查..."
+        fi
+      continue-on-error: true      # 即使失败也继续执行
+    
+    # 运行单元测试（如果配置了test脚本）
+    - name: 运行单元测试
+      run: |
+        if [ -f "package.json" ] && grep -q '"test"' package.json; then
+          pnpm run test
+        else
+          echo "未找到test脚本，跳过单元测试..."
+        fi
+      continue-on-error: true      # 即使失败也继续执行
+
+  # ========== 构建和推送Docker镜像 ==========
+  # 仅在主分支推送时执行
+  build-and-push:
+    needs: test                    # 依赖测试任务完成
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'  # 仅在主分支执行
+    
+    steps:
+    # 检出代码
+    - name: 检出代码
+      uses: actions/checkout@v4
+    
+    # 设置Docker Buildx（支持多架构构建）
+    - name: 设置 Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    # 登录Docker Hub
+    - name: 登录 Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    # 提取镜像元数据（标签、标签等）
+    - name: 提取镜像元数据
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ secrets.DOCKER_USERNAME }}/editor-backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    # 构建并推送Docker镜像
+    - name: 构建并推送 Docker 镜像
+      uses: docker/build-push-action@v5
+      with:
+        context: .                 # 构建上下文
+        platforms: linux/amd64,linux/arm64  # 支持多架构
+        push: true                 # 推送到Docker Hub
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha       # 使用GitHub Actions缓存
+        cache-to: type=gha,mode=max
+
+  # ========== 部署到服务器 ==========
+  # 在Docker镜像构建完成后部署到生产服务器
+  deploy:
+    needs: build-and-push        # 依赖镜像构建完成
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'  # 仅在主分支执行
+    
+    steps:
+    # 部署到服务器
+    - name: 部署到生产服务器
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}        # 服务器IP地址
+        username: ${{ secrets.SERVER_USER }}    # 服务器用户名
+        key: ${{ secrets.SERVER_SSH_KEY }}      # SSH私钥
+        port: ${{ secrets.SERVER_PORT || 22 }}  # SSH端口，默认22
+        script: |
+          # 停止并删除旧容器
+          docker stop editor-backend || true
+          docker rm editor-backend || true
+          
+          # 拉取最新镜像
+          docker pull ${{ secrets.DOCKER_USERNAME }}/editor-backend:latest
+          
+          # 启动新容器
+          docker run -d \
+            --name editor-backend \
+            --restart unless-stopped \
+            -p 3000:3000 \
+            -e NODE_ENV=production \
+            -v /var/log/editor-backend:/app/logs \
+            ${{ secrets.DOCKER_USERNAME }}/editor-backend:latest
+          
+          # 清理未使用的镜像
+          docker image prune -f
+          
+          # 检查容器状态
+          sleep 10
+          docker ps | grep editor-backend
+          
+          echo "部署完成！应用已在端口3000上运行"
+
+  # ========== 安全扫描 ==========
+  # 扫描代码和依赖中的安全漏洞
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # 检出代码
+    - name: 检出代码
+      uses: actions/checkout@v4
+    
+    # 运行Trivy安全扫描
+    - name: 运行 Trivy 安全扫描
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'            # 文件系统扫描
+        scan-ref: '.'              # 扫描当前目录
+        format: 'sarif'            # 输出格式
+        output: 'trivy-results.sarif'
+    
+    # 上传扫描结果到GitHub安全选项卡
+    - name: 上传安全扫描结果
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()               # 无论扫描结果如何都上传
+      with:
+        sarif_file: 'trivy-results.sarif'

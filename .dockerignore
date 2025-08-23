@@ -1,0 +1,80 @@
+# 依赖目录
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 构建输出
+dist
+build
+
+# 日志文件
+logs
+*.log
+
+# 运行时数据
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 覆盖率目录
+coverage
+.nyc_output
+
+# IDE和编辑器文件
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# 操作系统生成的文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git相关
+.git
+.gitignore
+
+# 环境变量文件（保留.env用于生产环境）
+.env.local
+.env.development
+.env.test
+
+# 测试相关
+test
+__tests__
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# 文档
+README.md
+*.md
+docs
+
+# Docker相关
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.yaml
+
+# CI/CD相关
+.github
+.gitlab-ci.yml
+.travis.yml
+.circleci
+
+# 其他
+.eslintrc*
+.prettierrc*
+tsconfig.json
+jest.config.js
