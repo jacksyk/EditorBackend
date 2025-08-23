@@ -105,8 +105,8 @@ export class UserService {
         attributes: { exclude: ['password'] }
       });
       return user;
-    } catch (error: any) {
-      throw new Error(`获取用户失败: ${error.message}`);
+    } catch (error) {
+      throw new Error(`获取用户失败: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
