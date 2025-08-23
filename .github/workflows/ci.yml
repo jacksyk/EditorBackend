@@ -85,22 +85,11 @@ jobs:
     - name: 设置 Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    # 设置Docker用户名环境变量
-    - name: 设置 Docker 用户名
-      run: |
-        if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
-          echo "警告: DOCKER_USERNAME 未设置，使用默认值"
-          echo "DOCKER_USERNAME=jacksyk" >> $GITHUB_ENV
-        else
-          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> $GITHUB_ENV
-        fi
-        echo "使用的Docker用户名: $DOCKER_USERNAME"
-    
     # 登录Docker Hub
     - name: 登录 Docker Hub
       uses: docker/login-action@v3
       with:
-        username: ${{ env.DOCKER_USERNAME }}
+        username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
     
     # 提取镜像元数据（标签、标签等）
@@ -108,7 +97,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.DOCKER_USERNAME }}/editor-backend
+        images: jacksyk/editor-backend
         tags: |
           type=ref,event=branch
           type=ref,event=pr
