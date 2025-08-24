@@ -5,6 +5,14 @@
 
 name: CI/CD Pipeline
 
+# ========== 权限配置 ==========
+# 定义workflow所需的权限
+permissions:
+  contents: read                     # 读取仓库内容
+  security-events: write             # 写入安全事件（上传SARIF文件）
+  actions: read                      # 读取Actions信息
+  pull-requests: read                # 读取PR信息
+
 # ========== 触发条件 ==========
 # 定义何时触发CI/CD流程
 on:
@@ -231,7 +239,7 @@ jobs:
     
     # 上传扫描结果到GitHub安全选项卡
     - name: 上传安全扫描结果
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()               # 无论扫描结果如何都上传
       with:
         sarif_file: 'trivy-results.sarif'
