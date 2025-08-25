@@ -3,6 +3,8 @@ import 'reflect-metadata';
 import dotenv from 'dotenv';
 import Database from '../config/database';
 import logger from '../config/logger';
+import cors from 'cors';
+
 import { UserRouter, ArticleRouter } from '../router';
 
 // 加载环境变量
@@ -13,6 +15,9 @@ const app: express.Application = express();
 
 app.use(express.json({ limit: '10mb' })); // 解析JSON请求体
 app.use(express.urlencoded({ extended: true, limit: '10mb' })); // 解析URL编码请求体
+app.use(cors({
+    origin: '*',
+}))
 
 const PORT = process.env.PORT || 3000;
 
