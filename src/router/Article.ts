@@ -26,13 +26,11 @@ const updateArticleValidation = [
     .withMessage('文章ID必须是正整数'),
   body('title')
     .optional()
-    .isLength({ min: 3, max: 100 })
+    .isLength({ min: 0, max: 100 })
     .withMessage('文章标题长度必须在3-100个字符之间')
     .trim(),
   body('content')
     .optional()
-    .isLength({ min: 10, max: 10000 })
-    .withMessage('文章内容长度必须在10-10000个字符之间')
     .trim()
 ];
 

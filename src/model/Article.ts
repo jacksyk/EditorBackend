@@ -33,15 +33,14 @@ export class Article extends Model {
     @Unique("article_title")
     @Column({
         validate: {
-            len: [3, 50] // 长度校验：3-50字符
+            len: [0, 50] // 长度校验：3-50字符
         }
     })
     title!: string;
 
-    // 文章内容（非空） 
+    // 文章内容（非空，支持大容量数据）
     @AllowNull(false)
-    @Unique("article_content")
-    @Column
+    @Column(DataType.TEXT('long')) // 使用LONGTEXT类型，支持最大4GB数据
     content!: string;
 
     // 文章作者ID（外键关联到User表）
