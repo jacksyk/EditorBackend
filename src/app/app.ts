@@ -16,6 +16,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' })); // 解析URL编�
 
 const PORT = process.env.PORT || 3000;
 
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+})
 app.use('/user', UserRouter);
 app.use('/article', ArticleRouter);
 
